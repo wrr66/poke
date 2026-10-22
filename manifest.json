@@ -1,0 +1,220 @@
+{
+  "cards": [
+    {
+      "file": "cards/大王.jpg",
+      "label": "大王"
+    },
+    {
+      "file": "cards/小王.jpg",
+      "label": "小王"
+    },
+    {
+      "file": "cards/方片10.jpg",
+      "label": "方片10"
+    },
+    {
+      "file": "cards/方片2.jpg",
+      "label": "方片2"
+    },
+    {
+      "file": "cards/方片3.jpg",
+      "label": "方片3"
+    },
+    {
+      "file": "cards/方片4.jpg",
+      "label": "方片4"
+    },
+    {
+      "file": "cards/方片5.jpg",
+      "label": "方片5"
+    },
+    {
+      "file": "cards/方片6.jpg",
+      "label": "方片6"
+    },
+    {
+      "file": "cards/方片7.jpg",
+      "label": "方片7"
+    },
+    {
+      "file": "cards/方片8.jpg",
+      "label": "方片8"
+    },
+    {
+      "file": "cards/方片9.jpg",
+      "label": "方片9"
+    },
+    {
+      "file": "cards/方片A.jpg",
+      "label": "方片A"
+    },
+    {
+      "file": "cards/方片J.jpg",
+      "label": "方片J"
+    },
+    {
+      "file": "cards/方片K.jpg",
+      "label": "方片K"
+    },
+    {
+      "file": "cards/方片Q.jpg",
+      "label": "方片Q"
+    },
+    {
+      "file": "cards/梅花10.jpg",
+      "label": "梅花10"
+    },
+    {
+      "file": "cards/梅花2.jpg",
+      "label": "梅花2"
+    },
+    {
+      "file": "cards/梅花3.jpg",
+      "label": "梅花3"
+    },
+    {
+      "file": "cards/梅花4.jpg",
+      "label": "梅花4"
+    },
+    {
+      "file": "cards/梅花5.jpg",
+      "label": "梅花5"
+    },
+    {
+      "file": "cards/梅花6.jpg",
+      "label": "梅花6"
+    },
+    {
+      "file": "cards/梅花7.jpg",
+      "label": "梅花7"
+    },
+    {
+      "file": "cards/梅花8.jpg",
+      "label": "梅花8"
+    },
+    {
+      "file": "cards/梅花9.jpg",
+      "label": "梅花9"
+    },
+    {
+      "file": "cards/梅花A.jpg",
+      "label": "梅花A"
+    },
+    {
+      "file": "cards/梅花J.jpg",
+      "label": "梅花J"
+    },
+    {
+      "file": "cards/梅花K.jpg",
+      "label": "梅花K"
+    },
+    {
+      "file": "cards/梅花Q.jpg",
+      "label": "梅花Q"
+    },
+    {
+      "file": "cards/红桃10.jpg",
+      "label": "红桃10"
+    },
+    {
+      "file": "cards/红桃2.jpg",
+      "label": "红桃2"
+    },
+    {
+      "file": "cards/红桃3.jpg",
+      "label": "红桃3"
+    },
+    {
+      "file": "cards/红桃4.jpg",
+      "label": "红桃4"
+    },
+    {
+      "file": "cards/红桃5.jpg",
+      "label": "红桃5"
+    },
+    {
+      "file": "cards/红桃6.jpg",
+      "label": "红桃6"
+    },
+    {
+      "file": "cards/红桃7.jpg",
+      "label": "红桃7"
+    },
+    {
+      "file": "cards/红桃8.jpg",
+      "label": "红桃8"
+    },
+    {
+      "file": "cards/红桃9.jpg",
+      "label": "红桃9"
+    },
+    {
+      "file": "cards/红桃A.jpg",
+      "label": "红桃A"
+    },
+    {
+      "file": "cards/红桃J.jpg",
+      "label": "红桃J"
+    },
+    {
+      "file": "cards/红桃K.jpg",
+      "label": "红桃K"
+    },
+    {
+      "file": "cards/红桃Q.jpg",
+      "label": "红桃Q"
+    },
+    {
+      "file": "cards/黑桃10.jpg",
+      "label": "黑桃10"
+    },
+    {
+      "file": "cards/黑桃2.jpg",
+      "label": "黑桃2"
+    },
+    {
+      "file": "cards/黑桃3.jpg",
+      "label": "黑桃3"
+    },
+    {
+      "file": "cards/黑桃4.jpg",
+      "label": "黑桃4"
+    },
+    {
+      "file": "cards/黑桃5.jpg",
+      "label": "黑桃5"
+    },
+    {
+      "file": "cards/黑桃6.jpg",
+      "label": "黑桃6"
+    },
+    {
+      "file": "cards/黑桃7.jpg",
+      "label": "黑桃7"
+    },
+    {
+      "file": "cards/黑桃8.jpg",
+      "label": "黑桃8"
+    },
+    {
+      "file": "cards/黑桃9.jpg",
+      "label": "黑桃9"
+    },
+    {
+      "file": "cards/黑桃A.jpg",
+      "label": "黑桃A"
+    },
+    {
+      "file": "cards/黑桃J.jpg",
+      "label": "黑桃J"
+    },
+    {
+      "file": "cards/黑桃K.jpg",
+      "label": "黑桃K"
+    },
+    {
+      "file": "cards/黑桃Q.jpg",
+      "label": "黑桃Q"
+    }
+  ]
+}

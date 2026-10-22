@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="B1Habz1TnY10HDQ7MMcVk4">
+<head data-page-node-id="fVu8pmb8hTlurEdy4pD2yo">
+<meta charset="UTF-8" data-page-node-id="gyFkXWZLKsnmECafBrSCzI" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" data-page-node-id="qxVrJNBae5o7uSUICsHTBO" />
+<title>学子卡牌 · Class Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" data-page-node-id="yDFglc4dZpVIC8fCia4Gvx">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-page-node-id="63g1AL12GHeT50Ii9hGvoI">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Noto+Serif+SC:wght@500;600&display=swap" rel="stylesheet" data-page-node-id="aiPEVdtf0OL1rAQXjOlTZU">
+<style>
+  :root{
+    --bg:#070610;          /* 近黑·微靛 */
+    --bg2:#0c0a16;
+    --card:#120f1f;
+    --card2:#191427;
+    --gold:#e0b73a;        /* 真金属金(主强调) */
+    --gold-bright:#ffe690;
+    --gold-dim:#9a7d2e;
+    --ember:#7d2b3a;       /* 暗酒红(极少量) */
+    --ink:#cfc8db;
+    --ink-dim:#857d96;
+    --line:rgba(224,183,58,.22);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Noto Serif SC",-apple-system,"PingFang SC",serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;position:relative;
+  }
+  /* 背景层: 星 + 深紫烟雾 + 暗角 + 噪点 */
+  #stars{position:fixed;inset:0;z-index:0}
+  .fog{position:fixed;inset:-25%;z-index:1;pointer-events:none;filter:blur(90px);opacity:.42;
+    background:
+      radial-gradient(45% 40% at 50% 42%, #2a1d4a 0%, transparent 62%),
+      radial-gradient(34% 30% at 22% 78%, #1a1330 0%, transparent 60%),
+      radial-gradient(30% 26% at 80% 20%, #221634 0%, transparent 60%);
+    background-size:180% 180%;animation:fog 75s ease-in-out infinite}
+  @keyframes fog{0%{background-position:0% 0%}50%{background-position:100% 100%}100%{background-position:0% 0%}}
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(120% 100% at 50% 40%, transparent 42%, rgba(0,0,0,.55) 88%, rgba(0,0,0,.85) 100%)}
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  .wrap{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:30px 16px 36px}
+
+  header{text-align:center;margin-bottom:2px}
+  .orn{color:var(--gold-dim);letter-spacing:.5em;font-size:12px;opacity:.7}
+  header .en{font-family:"Cinzel",serif;font-weight:600;font-size:clamp(1.5rem,0.7rem+3.5vw,3rem);
+    letter-spacing:.18em;white-space:nowrap;margin:6px 0 0;
+    background:linear-gradient(180deg,var(--gold-bright),var(--gold) 55%,var(--gold-dim));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 1px 10px rgba(224,183,58,.25))}
+  header .cn{font-family:"Cormorant Garamond",serif;font-style:italic;color:var(--ink-dim);
+    font-size:14px;letter-spacing:.3em;margin-top:6px}
+  header .sub{font-size:12px;color:var(--ink-dim);margin-top:12px;letter-spacing:1.5px;opacity:.85}
+
+  /* ===== 横向 3D 转盘 ===== */
+  .stage{position:relative;width:100%;max-width:860px;height:min(58vh,440px);margin:14px auto 0}
+  .scene{position:absolute;inset:0;perspective:1300px;perspective-origin:50% 46%;transition:opacity .6s,filter .6s}
+  .scene.dim{opacity:.12;filter:blur(3px)}
+  .glow-core{position:absolute;left:50%;top:46%;width:240px;height:240px;transform:translate(-50%,-50%);
+    border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle, rgba(224,183,58,.16), rgba(125,43,58,.10) 45%, transparent 70%);
+    animation:breathe 6s ease-in-out infinite;z-index:0}
+  @keyframes breathe{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}}
+  .carousel{position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d}
+
+  .cback{position:absolute;width:156px;height:219px;left:-78px;top:-109.5px;border-radius:12px;
+    backface-visibility:hidden;-webkit-backface-visibility:hidden;cursor:pointer;
+    background-image:url('cards/back.jpg');background-size:cover;background-position:center;
+    border:1px solid rgba(0,0,0,.35);
+    box-shadow:0 14px 34px rgba(0,0,0,.6)}
+  .cback.front{box-shadow:0 14px 40px rgba(0,0,0,.6), 0 0 0 3px var(--gold), 0 0 30px rgba(224,183,58,.55)}
+
+  /* 抓取标记 + 神秘符文环 */
+  .grab-marker{position:absolute;left:50%;top:5%;transform:translateX(-50%);z-index:7;color:var(--gold);
+    font-size:20px;opacity:.65;filter:drop-shadow(0 0 8px var(--gold));pointer-events:none;animation:bob 2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+  .rune-ring{position:absolute;left:50%;top:46%;width:min(80vw,580px);height:min(80vw,580px);transform:translate(-50%,-50%);
+    border:1px solid rgba(224,183,58,.10);border-radius:50%;z-index:0;pointer-events:none;animation:spinslow 150s linear infinite}
+  .rune-ring::after{content:"";position:absolute;inset:8%;border:1px dashed rgba(224,183,58,.07);border-radius:50%}
+  .rune-ring span{position:absolute;left:50%;top:50%;font-size:15px;color:rgba(224,183,58,.30);font-family:"Cinzel",serif}
+  @keyframes spinslow{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  /* 揭晓层(平面) */
+  .reveal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,28px);
+    z-index:6;pointer-events:none;perspective:1400px}
+  .rc{width:clamp(150px,34vw,200px);aspect-ratio:1226/1720;transform-style:preserve-3d;
+    opacity:0;transform:translateY(20px) scale(.7);transition:opacity .5s,transform .6s cubic-bezier(.2,.8,.2,1)}
+  .rc.in{opacity:1;transform:none}
+  .rc .inner{position:relative;width:100%;height:100%;transition:transform .85s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+  .rc.flip .inner{transform:rotateY(180deg)}
+  .rc .face{position:absolute;inset:0;border-radius:13px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+  .rc .bk{background-image:url('cards/back.jpg');background-size:cover;background-position:center;
+    border:1px solid rgba(0,0,0,.35);
+    box-shadow:0 16px 40px rgba(0,0,0,.7)}
+  .rc .bk .sig{display:none}
+
+  .stage-hint{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);font-family:"Cormorant Garamond",serif;
+    font-style:italic;font-size:15px;color:var(--ink-dim);letter-spacing:1px;white-space:nowrap;text-align:center}
+
+  .actions{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:12px 30px;border-radius:2px;cursor:pointer;
+    font-family:"Cinzel",serif;font-size:13px;letter-spacing:2px;color:var(--gold-bright);
+    background:linear-gradient(180deg,rgba(40,32,20,.6),rgba(20,16,12,.6));
+    border:1px solid var(--gold-dim);box-shadow:0 0 18px rgba(224,183,58,.12),inset 0 0 16px rgba(224,183,58,.06);
+    transition:transform .2s,box-shadow .2s,border-color .2s}
+  .pill:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 0 28px rgba(224,183,58,.28)}
+  .pill.ghost{color:var(--ink-dim);border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.02);box-shadow:none}
+  .pill:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+  /* ===== 摄像头浮窗 ===== */
+  .cam{position:fixed;right:16px;bottom:16px;width:206px;z-index:20;
+    background:rgba(12,10,22,.9);border:1px solid var(--line);border-radius:12px;padding:10px;
+    backdrop-filter:blur(14px);box-shadow:0 12px 40px rgba(0,0,0,.7);transition:transform .35s}
+  .cam.collapsed{transform:translateY(calc(100% - 40px))}
+  .cam .hd{display:flex;align-items:center;justify-content:space-between;font-family:"Cinzel",serif;font-size:11px;
+    color:var(--gold);letter-spacing:1px;margin-bottom:8px;cursor:pointer}
+  .cam .hd .dot{width:7px;height:7px;border-radius:50%;background:#555;display:inline-block;margin-right:6px}
+  .cam .hd .dot.on{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  .cam-box{position:relative;border-radius:9px;overflow:hidden;background:#000;aspect-ratio:4/3}
+  #cam{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+  #overlay{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1)}
+  .gnow{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);border-radius:7px;padding:3px 8px;font-size:11px;color:var(--gold)}
+  .charge{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:72%;height:5px;
+    background:rgba(255,255,255,.12);border-radius:5px;overflow:hidden;opacity:0;transition:.15s}
+  .charge.show{opacity:1}
+  .charge i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-dim),var(--gold-bright))}
+  .cam .btns{margin-top:8px}
+  .cam .btns button{width:100%;font-family:"Cinzel",serif;font-size:11px;letter-spacing:1px;padding:8px 0;border-radius:6px;cursor:pointer;
+    border:1px solid var(--gold-dim);background:rgba(40,32,20,.5);color:var(--gold-bright)}
+  .cam .btns button:hover{background:rgba(60,48,28,.6)}
+
+  .toast{position:fixed;left:50%;top:22px;transform:translateX(-50%);z-index:50;
+    background:rgba(12,10,22,.95);border:1px solid var(--gold-dim);color:var(--gold-bright);
+    font-family:"Cinzel",serif;padding:10px 24px;border-radius:2px;font-size:13px;letter-spacing:2px;
+    opacity:0;pointer-events:none;transition:.3s}
+  .toast.show{opacity:1}
+
+  footer{position:relative;z-index:3;text-align:center;color:var(--ink-dim);font-size:11px;margin-top:auto;padding-top:26px;line-height:1.9;opacity:.75}
+
+  /* 右上角牌库信息 */
+  .deckinfo{position:fixed;top:14px;right:14px;z-index:21;
+    background:rgba(12,10,22,.30);border:1px solid rgba(224,183,58,.10);border-radius:10px;padding:8px 14px;
+    backdrop-filter:blur(7px);font-family:"Cinzel",serif;font-size:11px;letter-spacing:1px;color:var(--gold);opacity:.75}
+
+  /* 左上主题切换 */
+  .theme-toggle{position:fixed;top:14px;left:14px;z-index:21;cursor:pointer;
+    font-family:"Cinzel",serif;font-size:11px;letter-spacing:1px;padding:8px 15px;border-radius:22px;
+    color:var(--gold-bright);background:rgba(12,10,22,.5);border:1px solid var(--gold-dim);
+    backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.4);transition:.25s}
+  .theme-toggle:hover{transform:translateY(-1px);border-color:var(--gold);box-shadow:0 6px 22px rgba(0,0,0,.5)}
+  .sk{display:none}   /* 星之卡装饰: 默认(幽冥)隐藏, 仅小樱皮肤显示 */
+
+  /* ============================================================
+     🌸 百变小樱 皮肤 (data-theme="sakura")
+     ============================================================ */
+  body[data-theme="sakura"]{
+    --bg:#ffe9f3;        /* 樱粉天 */
+    --bg2:#ffdcec;
+    --card:#fff6fb;
+    --card2:#ffe7f3;
+    --gold:#e85c97;      /* 桃粉(主强调,复用 gold 变量) */
+    --gold-bright:#ff89bf;
+    --gold-dim:#cf6f9e;
+    --ember:#9b7ad6;     /* 薰衣草紫(点缀) */
+    --ink:#5b3550;       /* 深梅墨字 */
+    --ink-dim:#a87f9b;
+    --line:rgba(232,92,151,.28);
+    background:var(--bg);
+  }
+  body[data-theme="sakura"] .fog{opacity:.55;
+    background:
+      radial-gradient(45% 40% at 50% 38%, #ffc2dd 0%, transparent 62%),
+      radial-gradient(34% 30% at 20% 80%, #ffd6ea 0%, transparent 60%),
+      radial-gradient(32% 28% at 82% 22%, #e6d4ff 0%, transparent 60%)}
+  body[data-theme="sakura"] .vignette{
+    background:radial-gradient(120% 100% at 50% 36%, transparent 50%, rgba(255,170,205,.26) 90%, rgba(255,150,195,.4) 100%)}
+  body[data-theme="sakura"] .grain{opacity:.03}
+  body[data-theme="sakura"] .glow-core{
+    background:radial-gradient(circle, rgba(255,140,190,.22), rgba(155,122,214,.12) 45%, transparent 70%)}
+  body[data-theme="sakura"] header .en{filter:drop-shadow(0 1px 10px rgba(255,140,190,.4))}
+  /* 卡背统一使用 cards/back.jpg，两种皮肤都显示同一张背图；
+     仅在“选中/高亮”时叠加主题色光晕以区分当前牌 */
+  body[data-theme="sakura"] .cback.front{
+    box-shadow:0 14px 38px rgba(210,80,140,.45), 0 0 0 3px var(--gold), 0 0 30px rgba(255,150,200,.6)}
+  body[data-theme="sakura"] .rune-ring{border-color:rgba(232,92,151,.16)}
+  body[data-theme="sakura"] .rune-ring::after{border-color:rgba(155,122,214,.14)}
+  body[data-theme="sakura"] .rune-ring span{color:rgba(232,92,151,.4)}
+
+  /* 学生卡: 正面图片 + 文件名标签 */
+  .rc .ft{transform:rotateY(180deg);padding:0;background:linear-gradient(165deg,var(--card2),var(--card));overflow:hidden}
+  .ft .photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .ft .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(165deg,var(--card2),var(--card));color:var(--ink-dim);font-size:14px;letter-spacing:1px;padding:8px;text-align:center}
+  .ft .label{position:absolute;left:0;right:0;bottom:0;padding:9px 8px;font-size:13px;color:#fff;text-align:center;
+    background:linear-gradient(transparent,rgba(0,0,0,.78));text-shadow:0 1px 3px #000;letter-spacing:1px;font-family:"Noto Serif SC",serif}
+
+  /* ============================================================
+     🟡 怀旧黄 皮肤 (data-theme="nostalgia") — 把幽冥的紫换成做旧暖黄
+     ============================================================ */
+  body[data-theme="nostalgia"]{
+    --bg:#1c1409;        /* 做旧深褐 */
+    --bg2:#251a0c;
+    --card:#efe0bd;      /* 老纸米黄 */
+    --card2:#e3d0a3;
+    --gold:#d8a23e;      /* 古铜金 */
+    --gold-bright:#f4d27e;
+    --gold-dim:#a9792c;
+    --ember:#b9762e;     /* 锈橙 */
+    --ink:#f1e3c2;       /* 暖米白字 */
+    --ink-dim:#b89b6a;
+    --line:rgba(216,162,62,.28);
+    background:var(--bg);
+  }
+  body[data-theme="nostalgia"] .fog{opacity:.5;
+    background:
+      radial-gradient(45% 40% at 50% 42%, #4a3413 0%, transparent 62%),
+      radial-gradient(34% 30% at 22% 78%, #3a2810 0%, transparent 60%),
+      radial-gradient(30% 26% at 80% 20%, #5a3e16 0%, transparent 60%)}
+  body[data-theme="nostalgia"] .vignette{
+    background:radial-gradient(120% 100% at 50% 36%, transparent 50%, rgba(70,46,16,.30) 90%, rgba(40,25,10,.5) 100%)}
+  body[data-theme="nostalgia"] .glow-core{
+    background:radial-gradient(circle, rgba(244,210,126,.18), rgba(185,118,46,.12) 45%, transparent 70%)}
+  body[data-theme="nostalgia"] header .en{filter:drop-shadow(0 1px 10px rgba(244,210,126,.35))}
+  body[data-theme="nostalgia"] .cback.front{
+    box-shadow:0 14px 40px rgba(0,0,0,.6), 0 0 0 3px var(--gold), 0 0 30px rgba(244,210,126,.55)}
+  body[data-theme="nostalgia"] .cam{background:rgba(28,20,9,.9);border-color:var(--line)}
+  body[data-theme="nostalgia"] .rune-ring{border-color:rgba(216,162,62,.16)}
+  body[data-theme="nostalgia"] .rune-ring::after{border-color:rgba(185,118,46,.14)}
+  body[data-theme="nostalgia"] .rune-ring span{color:rgba(216,162,62,.4)}
+
+  /* ===== 占卜: 问题输入 / 牌阵选择 / 解读面板 / API 设置 ===== */
+  .qrow{display:flex;gap:10px;width:100%;max-width:640px;margin:14px auto 0;flex-wrap:wrap;align-items:center;justify-content:center}
+  .qinput{flex:1 1 260px;min-width:0;background:rgba(0,0,0,.32);border:1px solid var(--line);
+    color:var(--ink);border-radius:10px;padding:11px 14px;font-size:13px;font-family:inherit;letter-spacing:.5px;
+    outline:none;transition:border-color .2s,box-shadow .2s}
+  .qinput::placeholder{color:var(--ink-dim)}
+  .qinput:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(224,183,58,.12)}
+  .spread{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:0 0 auto}
+  .spread button{background:transparent;border:0;color:var(--ink-dim);font-family:inherit;font-size:12px;
+    padding:11px 14px;cursor:pointer;letter-spacing:1px;transition:background .2s,color .2s}
+  .spread button+.spread button{border-left:1px solid var(--line)}
+  .spread button.on{background:var(--gold);color:#1a1306;font-weight:600}
+
+  .reading{width:100%;max-width:640px;margin:16px auto 0;background:rgba(0,0,0,.34);
+    border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:none;
+    box-shadow:0 10px 30px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.02)}
+  .reading.show{display:block;animation:rfade .5s ease both}
+  @keyframes rfade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .reading .rtitle{font-family:"Cinzel",serif;font-size:14px;letter-spacing:.12em;color:var(--gold);
+    margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .reading .rtitle::before{content:"❖";color:var(--gold-dim)}
+  .reading .rbody{font-size:14px;line-height:1.9;color:var(--ink);white-space:pre-wrap;word-break:break-word;
+    max-height:42vh;overflow:auto;padding-right:4px}
+  .reading .rbody .ld{color:var(--ink-dim);font-style:italic}
+  .reading .ractions{margin-top:12px;display:flex;justify-content:flex-end}
+  .reading.loading .rtitle{opacity:.7}
+
+  .apiDot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#444;margin-left:7px;vertical-align:middle;box-shadow:none}
+  .apiDot.on{background:#5fd08a;box-shadow:0 0 7px #5fd08a}
+
+  /* 设置弹窗 */
+  .modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.62);backdrop-filter:blur(3px);padding:20px}
+  .modal[hidden]{display:none}
+  .modal-box{width:100%;max-width:380px;background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid var(--line);border-radius:16px;padding:22px 20px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .modal-box .mtitle{font-family:"Cinzel",serif;font-size:16px;letter-spacing:.08em;color:var(--gold);margin-bottom:6px}
+  .modal-box .mnote{font-size:11px;color:var(--ink-dim);line-height:1.6;margin:0 0 14px}
+  .modal-box label{display:block;font-size:12px;color:var(--ink-dim);margin:12px 0 5px;letter-spacing:.5px}
+  .modal-box input,.modal-box select{width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);
+    color:var(--ink);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;outline:none}
+  .modal-box input:focus,.modal-box select:focus{border-color:var(--gold)}
+  .modal-box .merr{color:#e88;font-size:12px;min-height:14px;margin-top:8px}
+  .modal-box .mbtns{display:flex;gap:8px;margin-top:16px}
+  .modal-box .mbtns .pill{flex:1;justify-content:center}
+
+  /* 多张揭晓并排 */
+  .reveal-grid{display:flex;gap:18px;justify-content:center;align-items:flex-start;flex-wrap:wrap;padding:6px}
+  .reveal-grid .rc{width:clamp(118px,25vw,158px)}
+  .reveal-grid .rc .ph{font-size:11px}
+  .reveal-grid .rc .label{font-size:11px;padding:3px 6px}
+
+  @media(max-width:480px){
+    .theme-toggle{top:10px;left:10px;padding:7px 12px;font-size:10px}
+    .cam{width:150px} .cback{width:124px;height:174px;left:-62px;top:-87px}
+    .cback .sig{font-size:31px}
+    .stage{height:50vh}
+    .deckinfo{top:10px;right:10px;padding:7px 10px;font-size:10px}
+  }
+</style>
+</head>
+<body data-page-node-id="HrwMCvLUMXNfe0lAy1EMpu">
+<canvas id="stars" data-page-node-id="ziCWXaPmRVtC35KFvjkzPx"></canvas>
+<div class="fog" data-page-node-id="RwB75PctMhdqp6RNlgOvlm"></div>
+<div class="vignette" data-page-node-id="jPVtUAKs0Ium3vvJ7AaQKi"></div>
+<div class="grain" data-page-node-id="YsDLysvU15GRzVgYvPupHd"></div>
+<div class="toast" id="toast" data-page-node-id="OrlGzJ3TsyYgtxSAETcQ2G"></div>
+<button class="theme-toggle" id="themeToggle" data-page-node-id="OrZhYQ1eogwIuHPQ7Hak0Q">🌸 小樱风</button>
+<div class="deckinfo" id="deckinfo" data-page-node-id="MXjciCTDqpzcd3X3SYQA1f">牌库 —</div>
+
+<div class="wrap" data-page-node-id="hXgzMWZ3wc7srtXpe5G0rF">
+  <header data-page-node-id="Her4fTd7kpAE6W1eyr4znV">
+    <div class="orn" data-page-node-id="HCL5V6AilqNTcyoHJQBo7L">✦ ━━━━━ ✦ ━━━━━ ✦</div>
+    <h1 class="en" data-page-node-id="2BJGXGyhm4jBdXY9lsAMba">CLASS DECK</h1>
+    <div class="cn" data-page-node-id="Ae7AGdHjfcinAdzLpwhK4v">学 子 卡 牌 · 命运在转轮之中</div>
+    <div class="sub" data-page-node-id="CjTHVK1EKpHeSJh2otds0B">移动手掌左右滚动转盘 · 握拳抽一张</div>
+  </header>
+
+  <div class="qrow">
+    <input id="qInput" class="qinput" type="text" placeholder="在心里默念你的问题…（可留空）" maxlength="120" autocomplete="off">
+    <div class="spread" id="spread">
+      <button data-n="1" class="on">抽 1 张</button>
+      <button data-n="3">抽 3 张</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage" data-page-node-id="hSuZE2vD1zJnQO3RbXF0Uy">
+    <div class="rune-ring" id="runeRing" data-page-node-id="E3HmduWeEkPKfqghyZGgks"></div>
+    <div class="glow-core" data-page-node-id="zgEtrBDzQ3a6IZujIQ0HCy"></div>
+    <div class="grab-marker" data-page-node-id="ltIM1yZOBKHPC6BYYreLkZ">▼</div>
+    <div class="scene" id="scene" data-page-node-id="SKcWoAiroaNWsgUfIbxwxM"><div class="carousel" id="carousel" data-page-node-id="m4FA4HKyzoTQLRYknAlYT2"></div></div>
+    <div class="reveal" id="reveal" data-page-node-id="fvNrrCdlRNII5AikguNap2"></div>
+    <div class="stage-hint" id="stageHint" data-page-node-id="5HMZPyuhWMvMzblQRjJtaz">轻触卡牌 · 或开启摄像头以手势叩问命运</div>
+  </div>
+
+  <div class="actions" data-page-node-id="pTeZp5XhHpGQRunfQgqmpP">
+    <button class="pill" id="drawPill" data-page-node-id="gHVvu7QmAUp3PBw6vJtKlk">✦ 抽 一 张 ✦</button>
+    <button class="pill ghost" id="flipPill" disabled data-page-node-id="4iPLtCT0AADLM88bQLHOpC">翻 面</button>
+    <button class="pill ghost" id="shufflePill" data-page-node-id="OB5UIbTPxiBOJtGLfc0REK">洗 牌</button>
+    <button class="pill ghost" id="camPill" data-page-node-id="ozOoxNH2FBiHb9ltUpk7EJ">🎥 开启手势</button>
+    <button class="pill ghost" id="apiBtn" data-page-node-id="apiBtnNode">⚙ 设置 API<span class="apiDot" id="apiDot"></span></button>
+  </div>
+  <div id="diag" style="text-align:center;font-size:12px;color:var(--ink-dim);margin-top:12px;min-height:16px;letter-spacing:.5px" data-page-node-id="DStrRxwiun7bCFKhsUfsVl"></div>
+
+  <div class="reading" id="reading">
+    <div class="rtitle" id="readingTitle">🔮 解读</div>
+    <div class="rbody" id="readingBody"></div>
+    <div class="ractions"><button class="pill ghost" id="reRead">↻ 重新解读</button></div>
+  </div>
+</div>
+
+<aside class="cam collapsed" id="camWidget" data-page-node-id="tvgw5PBmjsIb1en00pddAX">
+  <div class="hd" id="camHd" data-page-node-id="qOhsbuHNaExEA9XFARb7P5"><span data-page-node-id="yExy12r6ueYm7tViA6149C"><span class="dot" id="dot" data-page-node-id="eTdjHROxDGF6c3rbVoRh9v"></span><span id="statusTxt" data-page-node-id="BBvcLU0XxIaLe9OUKUWi1J">GESTURE</span></span><span id="camToggle" data-page-node-id="uMSxGFWFghAsotCxJs1BxS">▲</span></div>
+  <div class="cam-box" data-page-node-id="QsmdBV5S0FkG4GQfAti2i2">
+    <video id="cam" autoplay playsinline muted data-page-node-id="8JpKkXhBGeHopDLqjgbnFR"></video>
+    <canvas id="overlay" data-page-node-id="tW1l6iRT9kaaJBUm5UzW9o"></canvas>
+    <div class="gnow" id="gnow" data-page-node-id="NS5YTmTFIlnjhLHulqIrNY">—</div>
+    <div class="charge" id="charge" data-page-node-id="Tp62DEuMAn050zn4lZ9gpz"><i id="chargeBar" data-page-node-id="7XoKcNJ2tptC4Hp05NbOgY"></i></div>
+  </div>
+  <div class="btns" data-page-node-id="j7BfPADXZ6DJr4p9rFTPEJ"><button id="startBtn" data-page-node-id="K2HrBH7HH2TZOq7t6dHBXN">开启摄像头</button></div>
+</aside>
+
+<footer data-page-node-id="EQtl8PBdc6Yxa5Ogy6AmjA">
+  🖐 移动手掌滚动选牌 · ✊ 握拳抽一张 · ✌ 翻面　|　MediaPipe 本地识别 · 画面不上传 · 零后端<br data-page-node-id="Bl7xAgf6aon3DPELNFIQi1">
+  卡片库 <span id="countTxt" data-page-node-id="67vxfroX7k29wIGlgiSFUp">—</span> 张 · 正面图片 + 统一卡背　|　命运掌握在你手 ✦
+</footer>
+
+<script>window.__DECK__=/*__DECK_DATA__*/[{"file": "cards/大王.jpg", "label": "大王"}, {"file": "cards/小王.jpg", "label": "小王"}, {"file": "cards/方片10.jpg", "label": "方片10"}, {"file": "cards/方片2.jpg", "label": "方片2"}, {"file": "cards/方片3.jpg", "label": "方片3"}, {"file": "cards/方片4.jpg", "label": "方片4"}, {"file": "cards/方片5.jpg", "label": "方片5"}, {"file": "cards/方片6.jpg", "label": "方片6"}, {"file": "cards/方片7.jpg", "label": "方片7"}, {"file": "cards/方片8.jpg", "label": "方片8"}, {"file": "cards/方片9.jpg", "label": "方片9"}, {"file": "cards/方片A.jpg", "label": "方片A"}, {"file": "cards/方片J.jpg", "label": "方片J"}, {"file": "cards/方片K.jpg", "label": "方片K"}, {"file": "cards/方片Q.jpg", "label": "方片Q"}, {"file": "cards/梅花10.jpg", "label": "梅花10"}, {"file": "cards/梅花2.jpg", "label": "梅花2"}, {"file": "cards/梅花3.jpg", "label": "梅花3"}, {"file": "cards/梅花4.jpg", "label": "梅花4"}, {"file": "cards/梅花5.jpg", "label": "梅花5"}, {"file": "cards/梅花6.jpg", "label": "梅花6"}, {"file": "cards/梅花7.jpg", "label": "梅花7"}, {"file": "cards/梅花8.jpg", "label": "梅花8"}, {"file": "cards/梅花9.jpg", "label": "梅花9"}, {"file": "cards/梅花A.jpg", "label": "梅花A"}, {"file": "cards/梅花J.jpg", "label": "梅花J"}, {"file": "cards/梅花K.jpg", "label": "梅花K"}, {"file": "cards/梅花Q.jpg", "label": "梅花Q"}, {"file": "cards/红桃10.jpg", "label": "红桃10"}, {"file": "cards/红桃2.jpg", "label": "红桃2"}, {"file": "cards/红桃3.jpg", "label": "红桃3"}, {"file": "cards/红桃4.jpg", "label": "红桃4"}, {"file": "cards/红桃5.jpg", "label": "红桃5"}, {"file": "cards/红桃6.jpg", "label": "红桃6"}, {"file": "cards/红桃7.jpg", "label": "红桃7"}, {"file": "cards/红桃8.jpg", "label": "红桃8"}, {"file": "cards/红桃9.jpg", "label": "红桃9"}, {"file": "cards/红桃A.jpg", "label": "红桃A"}, {"file": "cards/红桃J.jpg", "label": "红桃J"}, {"file": "cards/红桃K.jpg", "label": "红桃K"}, {"file": "cards/红桃Q.jpg", "label": "红桃Q"}, {"file": "cards/黑桃10.jpg", "label": "黑桃10"}, {"file": "cards/黑桃2.jpg", "label": "黑桃2"}, {"file": "cards/黑桃3.jpg", "label": "黑桃3"}, {"file": "cards/黑桃4.jpg", "label": "黑桃4"}, {"file": "cards/黑桃5.jpg", "label": "黑桃5"}, {"file": "cards/黑桃6.jpg", "label": "黑桃6"}, {"file": "cards/黑桃7.jpg", "label": "黑桃7"}, {"file": "cards/黑桃8.jpg", "label": "黑桃8"}, {"file": "cards/黑桃9.jpg", "label": "黑桃9"}, {"file": "cards/黑桃A.jpg", "label": "黑桃A"}, {"file": "cards/黑桃J.jpg", "label": "黑桃J"}, {"file": "cards/黑桃K.jpg", "label": "黑桃K"}, {"file": "cards/黑桃Q.jpg", "label": "黑桃Q"}]/*__DECK_DATA_END__*/;</script>
+<script>
+/* ============ 星空 ============ */
+(function(){
+  const c=document.getElementById('stars'), x=c.getContext('2d');
+  let w,h,stars,shoots=[],petals=[];
+  const PCOL=['#ffc1dd','#ffb0d2','#ff9ec7','#ffd6e8','#f8a8cd'];
+  function mkPetal(spread){return{x:Math.random()*w,y:spread?Math.random()*h:-20,
+    r:Math.random()*6+4,rot:Math.random()*Math.PI*2,spin:(Math.random()-.5)*.04,
+    vy:Math.random()*.6+.4,sway:Math.random()*Math.PI*2,swaySp:Math.random()*.02+.01,
+    amp:Math.random()*.7+.3,a:Math.random()*.4+.5,color:PCOL[Math.floor(Math.random()*PCOL.length)]};}
+  function resize(){w=c.width=innerWidth;h=c.height=innerHeight;
+    stars=Array.from({length:Math.min(170,Math.floor(w*h/9000))},()=>({
+      x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.1+.25,
+      a:Math.random(),s:Math.random()*.015+.003,vy:Math.random()*.03+.008}));
+    petals=Array.from({length:Math.min(75,Math.floor(w*h/16000))},()=>mkPetal(true));}
+  function shoot(){if(window.__theme==='sakura')return;shoots.push({x:Math.random()*w,y:-20,len:Math.random()*110+60,sp:Math.random()*4+4});}
+  function drawPetal(p){x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.globalAlpha=p.a;x.fillStyle=p.color;
+    const s=p.r;x.beginPath();x.moveTo(0,0);
+    x.quadraticCurveTo(s*.62,-s*.42,0,-s*1.45);x.quadraticCurveTo(-s*.62,-s*.42,0,0);
+    x.fill();x.restore();}
+  resize(); addEventListener('resize',resize);
+  setInterval(()=>{if(Math.random()<.4)shoot();},3800);
+  (function loop(){
+    x.clearRect(0,0,w,h);
+    if(window.__theme==='sakura'){
+      for(const p of petals){p.sway+=p.swaySp;p.y+=p.vy;p.x+=Math.sin(p.sway)*p.amp;p.rot+=p.spin;
+        if(p.y>h+24){p.y=-20;p.x=Math.random()*w;}
+        if(p.x>w+24)p.x=-20; else if(p.x<-24)p.x=w+24;
+        drawPetal(p);}
+      x.globalAlpha=1; requestAnimationFrame(loop); return;
+    }
+    for(const st of stars){st.a+=st.s; if(st.a>1||st.a<0)st.s*=-1; st.y+=st.vy; if(st.y>h)st.y=0;
+      x.globalAlpha=Math.abs(st.a)*.8; x.fillStyle=Math.random()<.1?'#c2a463':'#e8e3f0';
+      x.beginPath(); x.arc(st.x,st.y,st.r,0,7); x.fill();}
+    x.globalAlpha=1;
+    for(let i=shoots.length-1;i>=0;i--){const s=shoots[i];
+      const g=x.createLinearGradient(s.x,s.y,s.x-s.len,s.y-s.len);
+      g.addColorStop(0,'rgba(224,197,135,.75)'); g.addColorStop(1,'transparent');
+      x.strokeStyle=g; x.lineWidth=1.6; x.beginPath(); x.moveTo(s.x,s.y); x.lineTo(s.x-s.len,s.y-s.len); x.stroke();
+      s.x+=s.sp; s.y+=s.sp; if(s.y>h+50)shoots.splice(i,1);}
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ============ 横向 3D 转盘 ============ */
+const stage=document.getElementById('stage');
+const scene=document.getElementById('scene');
+const carousel=document.getElementById('carousel');
+const revealEl=document.getElementById('reveal');
+const stageHint=document.getElementById('stageHint');
+const toastEl=document.getElementById('toast');
+const drawPill=document.getElementById('drawPill');
+const flipPill=document.getElementById('flipPill');
+const shufflePill=document.getElementById('shufflePill');
+const camPill=document.getElementById('camPill');
+const diag=document.getElementById('diag');
+
+const N=20, STEP=360/N;          // 20张牌圆柱, 正前显示约7张
+let R=420, spin=0, vel=0;
+const IDLE=0.07, FRICTION=0.974;
+let phase='idle';           // idle | spin | snap | manual | revealed
+let snapTarget=0, busy=false;
+let manualMode=false, manualVel=0;        // 手势自主控盘
+let revealed=false, fistLatch=false;      // 揭晓定格 / 握拳防连发
+let revealedRC=null;                      // 当前翻出的卡
+let DECK=[];                              // 学生卡数据(来自 manifest.json)
+const SIGILS=['☉','☽','✶','♆','☿','♄','♃','✷','☖','⚸','✴','♇','☌','✦','❋','⚹'];
+
+function toast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>toastEl.classList.remove('show'),1700);}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function calcR(){
+  const w=Math.min(stage.clientWidth,860);
+  const cw=w<480?108:136;
+  R=Math.max(330, cw/(2*Math.tan(Math.PI/N))*1.16);
+}
+let backs=[];
+function buildCarousel(){
+  carousel.innerHTML=''; backs=[];
+  calcR();
+  for(let i=0;i<N;i++){
+    const el=document.createElement('div');
+    el.className='cback';
+    el.innerHTML='';
+    el.style.transform=`rotateY(${i*STEP}deg) translateZ(${R}px)`;
+    el.addEventListener('click',()=>{if(!busy)drawRandom();});
+    carousel.appendChild(el);
+    backs.push(el);
+  }
+}
+function depth(){
+  const span=3.5*STEP;     // 显示中心+左右各3张=7张
+  for(let i=0;i<backs.length;i++){
+    let net=((i*STEP+spin)%360+360)%360; if(net>180)net-=360;
+    const ab=Math.abs(net);
+    backs[i].style.opacity = ab>span?0:(0.22+0.78*(1-ab/(span+10))).toFixed(2);
+    backs[i].style.zIndex = Math.round(300-ab);
+    backs[i].classList.toggle('front', ab<STEP/2 && manualMode);   // 手动模式高亮正前牌
+  }
+}
+function frontIndex(){ return ((Math.round(-spin/STEP))%N+N)%N; }
+
+let onLanded=null;
+function tick(){
+  if(phase==='spin'){
+    spin+=vel; vel*=FRICTION;
+    if(Math.abs(vel)<0.5){ phase='snap'; snapTarget=Math.round(spin/STEP)*STEP; }
+  }else if(phase==='snap'){
+    spin+=(snapTarget-spin)*0.18;
+    if(Math.abs(snapTarget-spin)<0.25){ spin=snapTarget; phase='revealed'; if(onLanded){const f=onLanded;onLanded=null;f();} }
+  }else if(phase==='manual'){
+    spin+=manualVel;                       // 手左右移动 → 实时滚动转盘
+  }else if(phase==='idle'){
+    spin+=IDLE;
+  }
+  carousel.style.transform=`rotateY(${spin}deg)`;
+  depth();
+  requestAnimationFrame(tick);
+}
+
+/* ===== 学生卡数据 / 抽卡 ===== */
+function pickStudent(){ return DECK[Math.floor(Math.random()*DECK.length)]; }
+
+function cardFace(card){
+  // 正面: 图片 + 图片文件名(去扩展名)作标签; 图片缺失时回退显示文件名
+  return `<div class="inner">
+    <div class="face bk"></div>
+    <div class="face ft">
+      <div class="ph">${card.label}</div>
+      <img class="photo" src="${card.file}" alt="${card.label}" onerror="this.style.display='none'">
+      <div class="label">${card.label}</div>
+    </div></div>`;
+}
+
+// 居中揭晓 1~3 张(从卡背翻到正面图片)，多张依次飞入
+async function revealCards(cards){
+  scene.classList.add('dim');
+  revealEl.innerHTML='';
+  const grid=document.createElement('div'); grid.className='reveal-grid';
+  const rd=document.getElementById('reading'); if(rd) rd.classList.remove('show');
+  const els=[];
+  cards.forEach(c=>{ const el=document.createElement('div'); el.className='rc'; el.innerHTML=cardFace(c); grid.appendChild(el); els.push(el); });
+  revealEl.appendChild(grid);
+  for(let i=0;i<els.length;i++){
+    await sleep(i?140:40); els[i].classList.add('in');
+    await sleep(430); els[i].classList.add('flip');
+  }
+  await sleep(950);
+  revealed=true; phase='revealed'; busy=false;
+  drawPill.disabled=false; flipPill.disabled=false; shufflePill.disabled=false;
+  stageHint.textContent='✌ 翻面看卡背 · 🖐 张开手掌 重抽';
+  onRevealed(cards);
+}
+
+// 翻面(正面图片 ↔ 卡背)
+function flipRevealed(){ revealEl.querySelectorAll('.rc').forEach(e=>e.classList.toggle('flip')); }
+
+// 收起揭晓, 回到可选牌状态
+function resetReveal(){
+  revealed=false; revealedRC=null; revealEl.innerHTML=''; scene.classList.remove('dim');
+  const rd=document.getElementById('reading'); if(rd) rd.classList.remove('show');
+  phase='idle';
+  stageHint.textContent= running ? '🖐 移动手掌选牌 · ✊ 握拳抽一张' : '轻触卡牌 · 或开启手势抽一张';
+}
+
+// 按钮/点击: 随机抽一张(转盘转一下再翻出)
+async function drawRandom(){
+  if(busy) return;
+  busy=true; revealed=false; revealedRC=null; revealEl.innerHTML=''; scene.classList.remove('dim');
+  drawPill.disabled=true; flipPill.disabled=true; shufflePill.disabled=true;
+  vel=(15+Math.random()*7)*(Math.random()<.5?1:-1); phase='spin';
+  await new Promise(r=>onLanded=r);
+  await revealCards(drawCards());
+}
+
+// 手势: 握拳抓取正前一张(转盘对齐当前中心再翻出)
+async function selectFront(){
+  if(busy) return;
+  busy=true; revealed=false; revealedRC=null; revealEl.innerHTML=''; scene.classList.remove('dim');
+  drawPill.disabled=true; flipPill.disabled=true; shufflePill.disabled=true;
+  snapTarget=Math.round(spin/STEP)*STEP; phase='snap';
+  await new Promise(r=>onLanded=r);
+  await revealCards(drawCards());
+}
+
+// 洗牌(仅转动, 不翻牌)
+function shuffle(){
+  if(busy) return;
+  resetReveal();
+  vel=(9+Math.random()*5)*(Math.random()<.5?1:-1);
+  phase='spin';
+  onLanded=()=>{ phase='idle'; stageHint.textContent= running?'🖐 移动手掌选牌 · ✊ 握拳抽一张':'轻触卡牌 · 或开启手势抽一张'; };
+  stageHint.textContent='洗牌中 · 默念你想抽的人…';
+  toast('🖐 洗牌');
+}
+
+/* ============ MediaPipe 手势 ============ */
+const video=document.getElementById('cam');
+const overlay=document.getElementById('overlay');
+const octx=overlay.getContext('2d');
+const dot=document.getElementById('dot');
+const statusTxt=document.getElementById('statusTxt');
+const gnow=document.getElementById('gnow');
+const chargeEl=document.getElementById('charge');
+const chargeBar=document.getElementById('chargeBar');
+const startBtn=document.getElementById('startBtn');
+
+let recognizer=null, running=false, lastVideoTime=-1, lastTs=0, frameErr=0;
+let fistCount=0; const FIST_NEED=9;          // 约0.45s, 更跟手
+let missTol=0;                                // 握拳闪断容错
+let cooldown=0, vLock=false;
+let gHist=[];                                 // 多帧投票
+const MIN_SCORE=0.45;
+const GES_CN={Open_Palm:'张掌 🖐',Closed_Fist:'握拳 ✊',Victory:'胜利 ✌',Pointing_Up:'指上 ☝',Thumb_Up:'赞 👍',Thumb_Down:'踩 👎',ILoveYou:'🤟',None:'—'};
+
+async function loadMP(){
+  statusTxt.textContent='加载模型…';
+  // file:// 下浏览器禁止 fetch 本地文件 → 回退到 CDN(https 跨域读取允许)，恢复"双击也能用"
+  // 线上/localhost 用本地资源(快、不依赖国外 CDN)
+  const isFile = location.protocol === 'file:';
+  const CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+  const modUrl  = isFile ? CDN : './vendor/mediapipe/vision_bundle.mjs';
+  const wasmUrl = isFile ? CDN + '/wasm' : './vendor/mediapipe/wasm';
+  const modelUrl= isFile ? 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task' : './models/gesture_recognizer.task';
+  const mod=await import(modUrl);
+  window.__MP=mod;
+  const fs=await mod.FilesetResolver.forVisionTasks(wasmUrl);
+  const opts=del=>({
+    baseOptions:{modelAssetPath:modelUrl,delegate:del},
+    runningMode:'VIDEO',numHands:1, minHandDetectionConfidence:0.5, minTrackingConfidence:0.5});
+  try{
+    recognizer=await mod.GestureRecognizer.createFromOptions(fs,opts('GPU'));
+  }catch(e){
+    console.warn('GPU delegate 创建失败, 回退 CPU:',e.message);
+    recognizer=await mod.GestureRecognizer.createFromOptions(fs,opts('CPU'));
+  }
+}
+async function startCam(){
+  const camW=document.getElementById('camWidget');
+  camW.classList.remove('collapsed'); document.getElementById('camToggle').textContent='▼';
+  if(!window.isSecureContext){
+    diag.textContent='⚠ 当前非安全环境，无法用摄像头。请用 http://localhost 打开本页，别直接双击 index.html 文件。';
+    toast('⚠ 请用 localhost 打开'); return;
+  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    diag.textContent='⚠ 浏览器不支持摄像头 API（请用 Chrome/Edge 最新版）。'; return;
+  }
+  try{
+    if(!recognizer){ diag.textContent='正在加载手势模型(约8MB，首次稍候)…'; statusTxt.textContent='加载模型…'; await loadMP(); }
+    diag.textContent='正在请求摄像头权限，请在弹窗点「允许」…'; statusTxt.textContent='请求摄像头…';
+    const stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,frameRate:{ideal:30}}});
+    video.srcObject=stream; await video.play();
+    if(!video.videoWidth || !video.videoHeight){
+      await new Promise(res=>{ let done=false; const fin=()=>{if(done)return;done=true;video.removeEventListener('loadeddata',fin);res();};
+        video.addEventListener('loadeddata',fin); setTimeout(fin,2000); });
+    }
+    overlay.width=video.videoWidth||640; overlay.height=video.videoHeight||480;
+    lastTs=0; frameErr=0; lastVideoTime=-1;
+    running=true; dot.classList.add('on'); statusTxt.textContent='识别中'; startBtn.textContent='关闭摄像头';
+    camPill.textContent='🎥 手势已开'; diag.textContent='✓ 摄像头已开 · 移动手掌左右滚动选牌 · 握拳抽一张';
+    stageHint.textContent='🖐 移动手掌选牌 · ✊ 握拳抽一张';
+    loop();
+  }catch(e){
+    console.error(e); statusTxt.textContent='失败';
+    const map={NotAllowedError:'摄像头被拒绝/未授权 → Chrome 地址栏左侧🔒里允许相机；或 macOS 系统设置→隐私→摄像头 勾选 Chrome',
+      NotReadableError:'摄像头被其他程序占用 → 关掉 FaceTime/Zoom/钉钉等再试',
+      NotFoundError:'没检测到摄像头设备',
+      AbortError:'摄像头启动中断，请重试'};
+    diag.textContent='⚠ '+(map[e.name]||(e.name+': '+e.message));
+    toast('⚠ '+(e.name||'失败'));
+  }
+}
+function stopCam(){
+  running=false; dot.classList.remove('on'); statusTxt.textContent='GESTURE'; startBtn.textContent='开启摄像头';
+  gnow.textContent='—'; octx.clearRect(0,0,overlay.width,overlay.height);
+  const s=video.srcObject; if(s)s.getTracks().forEach(t=>t.stop()); video.srcObject=null;
+  chargeEl.classList.remove('show'); fistCount=0;
+  const cp=document.getElementById('camPill'); if(cp)cp.textContent='🎥 开启手势';
+  const dg=document.getElementById('diag'); if(dg)dg.textContent='';
+}
+function loop(){
+  if(!running) return;
+  requestAnimationFrame(loop);                       // 先排下一帧, 即使本帧抛错也不会让循环死掉
+  if(!recognizer || video.readyState<2 || !video.videoWidth || !video.videoHeight) return;  // 帧未就绪
+  if(video.currentTime===lastVideoTime) return;      // 同一帧不重复识别
+  lastVideoTime=video.currentTime;
+  let ts=performance.now(); if(ts<=lastTs) ts=lastTs+1; lastTs=ts;   // 时间戳严格递增
+  try{
+    handleRes(recognizer.recognizeForVideo(video, ts));
+    frameErr=0;
+  }catch(err){
+    if(frameErr++<3) console.warn('手势帧跳过:',err.message);       // 偶发坏帧, 跳过不刷屏
+    octx.clearRect(0,0,overlay.width,overlay.height);
+  }
+}
+function vote(g){ gHist.push(g); if(gHist.length>7)gHist.shift();
+  const cnt={}; let best=g,bn=0; for(const x of gHist){cnt[x]=(cnt[x]||0)+1; if(cnt[x]>bn){bn=cnt[x];best=x;}} return best; }
+let smHandX=0.5, smVel=0;        // 手位/速度平滑
+let openHold=0, fistHist=[];      // 张掌保持计数 / 握拳布尔消抖
+function isFist(lm){
+  const w=lm[0], d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  let curled=0;
+  [[8,6],[12,10],[16,14],[20,18]].forEach(([tip,pip])=>{ if(d(lm[tip],w)<d(lm[pip],w)) curled++; });
+  return curled>=3;
+}
+
+function handleRes(res){
+  octx.clearRect(0,0,overlay.width,overlay.height);
+  let raw='None', score=0;
+  if(res.landmarks&&res.landmarks.length){
+    const du=new window.__MP.DrawingUtils(octx);
+    const dc=window.__drawColors||['rgba(224,183,58,.75)','#e0c587'];
+    for(const lm of res.landmarks){
+      du.drawConnectors(lm, window.__MP.GestureRecognizer.HAND_CONNECTIONS,{color:dc[0],lineWidth:2.5});
+      du.drawLandmarks(lm,{color:dc[1],radius:2.5});
+    }
+  }
+  if(res.gestures&&res.gestures.length&&res.gestures[0].length){
+    const top=res.gestures[0][0]; score=top.score; if(score>=MIN_SCORE) raw=top.categoryName;
+  }
+  const g=vote(raw);                          // 分类器投票(仅用于✌翻面)
+
+  const hasHand = res.landmarks && res.landmarks.length>0;
+  let fist=false;
+  if(hasHand){ const lm=res.landmarks[0]; const hx=1-((lm[0].x+lm[9].x)/2); smHandX += (hx-smHandX)*0.4; fist=isFist(lm); }
+  fistHist.push(fist?1:0); if(fistHist.length>4) fistHist.shift();
+  const fistStable = hasHand && fistHist.reduce((a,b)=>a+b,0)>=3;   // 4帧里≥3帧握拳
+  gnow.textContent = !hasHand?'—':(fistStable?'握拳 ✊':'手掌 🖐');
+
+  if(cooldown>0){cooldown--; return;}
+
+  // ✌ 翻面(仅已翻出时)
+  if(!fistStable && g==='Victory' && revealed && !busy){ if(!vLock){vLock=true; flipRevealed(); cooldown=22;} }
+  else if(g!=='Victory') vLock=false;
+
+  if(busy) return;
+
+  // 揭晓定格: 张开手掌(非握拳)保持约0.4s → 重抽一张(防刚抽完误触)
+  if(revealed){
+    if(!fistStable){ if(++openHold>10){ resetReveal(); toast('🖐 重新开始'); cooldown=16; openHold=0; } }
+    else openHold=0;
+    return;
+  }
+
+  if(fistStable){
+    // ✊ 蓄力抓取当前正前的牌, 抓取时停止滚动
+    manualVel=0; smVel=0; if(phase==='idle')phase='manual'; manualMode=true;
+    if(fistLatch) return;                              // 这一握还没松开 → 不重复抓
+    fistCount++; chargeEl.classList.add('show');
+    chargeBar.style.width=Math.min(100,fistCount/FIST_NEED*100)+'%';
+    if(fistCount>=FIST_NEED){chargeEl.classList.remove('show');chargeBar.style.width='0%';fistCount=0;fistLatch=true;cooldown=14;selectFront();}
+  } else {
+    fistLatch=false; openHold=0;                       // 松开拳 → 重新武装
+    if(fistCount>0){fistCount=0;chargeEl.classList.remove('show');chargeBar.style.width='0%';}
+    // 🖐 张掌左右移动 → 实时滚动转盘选牌(平滑+大死区, 易停稳对准)
+    if(hasHand && (phase==='idle'||phase==='manual')){
+      if(!manualMode){ manualMode=true; stageHint.textContent='← 移动手掌滚动选牌 · 握拳抽一张 →'; }
+      phase='manual';
+      const dx=smHandX-0.5;
+      const target = Math.abs(dx)>0.11 ? (dx-Math.sign(dx)*0.11)*9 : 0;
+      smVel += (target-smVel)*0.25;
+      manualVel = Math.abs(smVel)<0.04?0:smVel;
+    } else if(!hasHand && phase==='manual'){
+      phase='idle'; manualMode=false; manualVel=0; smVel=0;
+      stageHint.textContent='🖐 移动手掌选牌 · ✊ 握拳抽一张';
+    }
+  }
+}
+
+/* ============ 事件 ============ */
+drawPill.addEventListener('click',drawRandom);
+flipPill.addEventListener('click',flipRevealed);
+shufflePill.addEventListener('click',shuffle);
+camPill.addEventListener('click',()=>running?stopCam():startCam());
+startBtn.addEventListener('click',()=>running?stopCam():startCam());
+const camW=document.getElementById('camWidget'),camToggle=document.getElementById('camToggle');
+document.getElementById('camHd').addEventListener('click',()=>{camW.classList.toggle('collapsed');camToggle.textContent=camW.classList.contains('collapsed')?'▲':'▼';});
+addEventListener('resize',()=>{buildCarousel();});
+
+/* 符文环(神秘氛围) */
+function buildRuneRing(){
+  const ring=document.getElementById('runeRing'); if(!ring)return;
+  const glyphs=THEMES[window.__theme||'noir'].ring;
+  const rad=ring.clientWidth/2-16;
+  ring.innerHTML=glyphs.map((gl,i)=>{
+    const a=i*30*Math.PI/180, x=Math.cos(a)*rad, y=Math.sin(a)*rad;
+    return `<span style="transform:translate(-50%,-50%) translate(${x}px,${y}px) rotate(${i*30+90}deg)">${gl}</span>`;
+  }).join('');
+}
+
+/* ============ 主题(幽冥 / 百变小樱) ============ */
+const THEMES={
+  noir:{ en:'NOIR CLASS', cn:'幽 冥 风 · 学子卡牌',
+    sub:'移动手掌左右滚动转盘 · 握拳抽一张',
+    ring:['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],
+    draw:['rgba(224,183,58,.75)','#e0c587'], toggle:'🌙 幽冥风', next:'sakura' },
+  sakura:{ en:'SAKURA CLASS', cn:'百 变 小 樱 · 学子卡牌',
+    sub:'移动手掌滚动牌阵 · 握拳抽一张',
+    ring:['✦','☀','☽','❀','✶','★','✷','❀','✦','☀','☽','❀'],
+    draw:['rgba(232,92,151,.8)','#ff89bf'], toggle:'🌸 小樱风', next:'nostalgia' },
+  nostalgia:{ en:'NOSTALGIA', cn:'怀 旧 黄 · 学子卡牌',
+    sub:'移动手掌滚动牌阵 · 握拳抽一张',
+    ring:['☀','✦','✶','❀','☽','✷','☀','✦','✶','❀','☽','✷'],
+    draw:['rgba(216,162,62,.8)','#f4d27e'], toggle:'🟡 怀旧风', next:'noir' },
+};
+let THEME=localStorage.getItem('classdeck-theme')||'noir'; if(!THEMES[THEME])THEME='noir';
+window.__theme=THEME; window.__drawColors=THEMES[THEME].draw;
+function applyTheme(t){
+  THEME=t; window.__theme=t; window.__drawColors=THEMES[t].draw;
+  try{localStorage.setItem('classdeck-theme',t);}catch(e){}
+  document.body.dataset.theme=t;
+  const cfg=THEMES[t];
+  document.querySelector('header .en').textContent=cfg.en;
+  document.querySelector('header .cn').textContent=cfg.cn;
+  document.querySelector('header .sub').textContent=cfg.sub;
+  const tt=document.getElementById('themeToggle'); if(tt)tt.textContent=cfg.toggle;
+  buildRuneRing();
+}
+document.getElementById('themeToggle').addEventListener('click',()=>applyTheme(THEMES[THEME].next));
+
+/* ============ 启动: 加载卡片数据 ============ */
+async function init(){
+  // 牌库数据已内联在 index.html 中（file:// 双击也能用）；
+  // 若内联为空，再回退到 fetch('manifest.json')（需经 http://localhost 打开）
+  DECK = window.__DECK__ || [];
+  if(!DECK.length){
+    try{
+      const res=await fetch('manifest.json',{cache:'no-store'});
+      const j=await res.json();
+      DECK=j.cards||[];
+    }catch(e){ DECK=[]; }
+  }
+  const countTxt=document.getElementById('countTxt');
+  const deckinfo=document.getElementById('deckinfo');
+  if(!DECK.length){
+    countTxt.textContent='0'; deckinfo.textContent='牌库 0';
+    diag.textContent='⚠ 未找到卡片数据。请确认 index.html 同目录下有 cards/ 文件夹，并将图片放进 cards/ 后运行 python3 tools/gen_manifest.py 重新生成。';
+    return;
+  }
+  countTxt.textContent=DECK.length;
+  deckinfo.textContent='牌库 '+DECK.length;
+  buildCarousel(); buildRuneRing(); applyTheme(THEME); tick();
+}
+init();
+addEventListener('resize',buildRuneRing);
+/* ============ 占卜: 牌意映射 / AI 解读 / API 设置 ============ */
+let SPREAD=1;                 // 1 或 3 张牌阵
+let lastCards=null;           // 最近一次抽到的牌(供「重新解读」)
+
+const PROVIDERS={
+  deepseek:{base:'https://api.deepseek.com/v1', model:'deepseek-chat'},
+  openai:{base:'https://api.openai.com/v1',    model:'gpt-4o-mini'},
+  qwen:{base:'https://dashscope.aliyuncs.com/compatible-mode/v1', model:'qwen-plus'},
+  glm:{base:'https://open.bigmodel.cn/api/paas/v4', model:'glm-4-flash'},
+  custom:{base:'', model:''}
+};
+const SUITS={
+  '黑桃':{n:'黑桃♠', h:'挑战、思维、压力与真相'},
+  '红桃':{n:'红桃♥', h:'情感、关系、爱与联结'},
+  '梅花':{n:'梅花♣', h:'行动、工作、成长与机会'},
+  '方片':{n:'方片♦', h:'财富、现实、价值与感官'}
+};
+const RANKS={
+  'A':{n:'A 王牌', h:'起始、新机与萌芽'}, '2':{n:'2', h:'对立、选择与平衡'},
+  '3':{n:'3', h:'萌芽、协作与初步成长'}, '4':{n:'4', h:'稳固、基础与秩序'},
+  '5':{n:'5', h:'冲突、动荡与调整'}, '6':{n:'6', h:'调和、过渡与流动'},
+  '7':{n:'7', h:'内省、神秘与转机'}, '8':{n:'8', h:'动能、掌控与精进'},
+  '9':{n:'9', h:'圆满前夜、压力峰值'}, '10':{n:'10', h:'完成、顶点与收束'},
+  'J':{n:'J 侍从', h:'信使、青年能量与新消息'}, 'Q':{n:'Q 王后', h:'母性能量、滋养与包容'},
+  'K':{n:'K 国王', h:'权威、父性能量与掌控'}
+};
+function cardMeaning(label){
+  if(label==='大王') return {suitName:'大王', rankName:'大阿卡那', hint:'宏大命运主轴、宇宙级能量、不可违逆的契机'};
+  if(label==='小王') return {suitName:'小王', rankName:'小阿卡那', hint:'变化、潜意识、意外之喜与灵活应变'};
+  const m=label.match(/^(黑桃|红桃|梅花|方片)(.+)$/);
+  if(!m) return {suitName:label, rankName:'', hint:'未知牌意'};
+  const s=SUITS[m[1]]||{n:m[1],h:''}; const r=RANKS[m[2]]||{n:m[2],h:''};
+  return {suitName:s.n, rankName:r.n, hint:(s.h+(r.h?'；'+r.h:''))};
+}
+
+/* ---- 抽牌(按牌阵张数) ---- */
+function pickN(n){ const pool=DECK.slice(); const out=[];
+  while(out.length<n && pool.length){ out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); } return out; }
+function drawCards(){ const n=SPREAD>1?SPREAD:1; return n===1?[pickStudent()]:pickN(n); }
+
+/* ---- API 配置(存本地) ---- */
+function loadApiCfg(){ try{ const s=JSON.parse(localStorage.getItem('classdeck-api')||'null'); if(s&&s.key) return s; }catch(e){} return null; }
+function saveApiCfg(o){ try{ localStorage.setItem('classdeck-api', JSON.stringify(o)); }catch(e){} }
+function updateApiStatus(){ const b=document.getElementById('apiDot'); const cfg=loadApiCfg(); if(b) b.classList.toggle('on', !!cfg); }
+
+/* ---- 解读面板 ---- */
+function showReading(title,body,loading){
+  const r=document.getElementById('reading');
+  document.getElementById('readingTitle').textContent=title;
+  document.getElementById('readingBody').textContent=body||'';
+  r.classList.add('show'); r.classList.toggle('loading', !!loading);
+  if(!loading) r.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ---- 调大模型(OpenAI 兼容) ---- */
+async function askAI(cards,question,cfg){
+  const base=cfg.base.replace(/\/+$/,'')+'/chat/completions';
+  const isSpread=cards.length>1;
+  const sys=`你是一位以扑克牌为媒介的占卜师，语气诗意、神秘但不迷信，解读要贴合现实生活并给人启发与力量。`
+    +`用户会给出TA默念的问题，以及抽到的扑克牌（含花色/点数与牌意提示）。请结合问题，把每张牌的牌意织成一段连贯、温暖、有画面感的中文解读，控制在280字以内。`
+    +`${isSpread?'这是'+cards.length+'张牌的牌阵，请按位置顺序（过去 / 现在 / 未来）串联解读，每阶段一两句。':'这是单张抽牌，请聚焦这一张牌给出当下的指引。'}`;
+  const posNames=['过去','现在','未来','阻碍','转机','结果'];
+  const userLines=cards.map((c,i)=>{ const mm=cardMeaning(c.label);
+    const pos=isSpread?('【'+(posNames[i]||('第'+(i+1)+'张'))+'】'):'';
+    return `${pos}抽到：${c.label}（${mm.suitName} · ${mm.rankName}）\n牌意提示：${mm.hint}`; }).join('\n\n');
+  const user=(question?('我的问题：'+question+'\n\n'):'（用户未提问，请就这张/这组牌给出当下的指引）\n\n')+userLines;
+  const body={ model:cfg.model, messages:[{role:'system',content:sys},{role:'user',content:user}], temperature:0.9, max_tokens:600 };
+  const ctrl=new AbortController(); const to=setTimeout(()=>ctrl.abort(),25000);
+  let res;
+  try{
+    res=await fetch(base,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},body:JSON.stringify(body),signal:ctrl.signal});
+  }finally{ clearTimeout(to); }
+  if(!res.ok){ let msg=res.status+' '+res.statusText; try{ const j=await res.json(); if(j&&j.error&&j.error.message) msg=j.error.message; }catch(_){ } throw new Error(msg); }
+  const j=await res.json();
+  const t=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+  if(!t||!t.trim()) throw new Error('接口未返回内容（请检查模型名/余额）');
+  return t.trim();
+}
+
+/* ---- 抽完牌后触发解读 ---- */
+async function onRevealed(cards){
+  lastCards=cards;
+  const cfg=loadApiCfg();
+  if(!cfg){
+    showReading('🔮 未配置 AI 接口','点下方「⚙ 设置 API」填入你的 Key，抽牌后即可获得 AI 实时占卜解读。Key 仅存你本机浏览器。', false);
+    return;
+  }
+  const q=(document.getElementById('qInput')?.value||'').trim();
+  showReading('🔮 正在解读…','连接占卜之火，请稍候…', true);
+  try{
+    const text=await askAI(cards,q,cfg);
+    showReading('🔮 你的牌阵解读', text, false);
+  }catch(e){
+    showReading('⚠ 解读失败', (e&&e.message)||String(e), false);
+  }
+}
+
+/* ---- 设置弹窗交互 ---- (弹窗 HTML 在脚本之后，故等 DOM 解析完再绑定) */
+function bindApiUi(){
+  const modal=document.getElementById('apiModal');
+  const provider=document.getElementById('apiProvider');
+  const keyEl=document.getElementById('apiKey');
+  const baseEl=document.getElementById('apiBase');
+  const modelEl=document.getElementById('apiModel');
+  const errEl=document.getElementById('apiErr');
+  function fill(){ const cfg=loadApiCfg()||{}; const p=cfg.provider||'deepseek';
+    provider.value=p; keyEl.value=cfg.key||'';
+    baseEl.value=cfg.base||PROVIDERS[p].base; modelEl.value=cfg.model||PROVIDERS[p].model; }
+  document.getElementById('apiBtn').addEventListener('click',()=>{ fill(); errEl.textContent=''; modal.hidden=false; });
+  document.getElementById('apiClose').addEventListener('click',()=>modal.hidden=true);
+  modal.addEventListener('click',e=>{ if(e.target===modal) modal.hidden=true; });
+  provider.addEventListener('change',()=>{ const p=PROVIDERS[provider.value]; if(p){ baseEl.value=p.base; modelEl.value=p.model; } });
+  document.getElementById('apiSave').addEventListener('click',()=>{
+    const o={ provider:provider.value, key:keyEl.value.trim(), base:baseEl.value.trim(), model:modelEl.value.trim() };
+    if(!o.key){ errEl.textContent='请填写 API Key'; return; }
+    if(!o.base||!o.model){ errEl.textContent='请填写接口地址与模型名'; return; }
+    saveApiCfg(o); errEl.textContent=''; updateApiStatus(); modal.hidden=true; toast('✓ API 已保存（仅存本机）');
+  });
+  document.getElementById('apiClear').addEventListener('click',()=>{ localStorage.removeItem('classdeck-api'); fill(); updateApiStatus(); toast('已清除 API 配置'); });
+  document.getElementById('reRead').addEventListener('click',()=>{ if(lastCards) onRevealed(lastCards); });
+  document.getElementById('spread').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    SPREAD=parseInt(b.dataset.n,10)||1;
+    document.querySelectorAll('#spread button').forEach(x=>x.classList.toggle('on',x===b));
+  });
+  updateApiStatus();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bindApiUi);
+else bindApiUi();
+
+window.__deck={drawRandom,flipRevealed,shuffle,selectFront,applyTheme};
+</script>
+<div class="modal" id="apiModal" hidden>
+  <div class="modal-box">
+    <div class="mtitle">⚙ 设置 AI 接口</div>
+    <p class="mnote">Key 仅保存在你本机浏览器(localStorage)，不会上传任何人。接口走 OpenAI 兼容格式 /chat/completions。</p>
+    <label>服务商</label>
+    <select id="apiProvider">
+      <option value="deepseek">DeepSeek</option>
+      <option value="openai">OpenAI</option>
+      <option value="qwen">通义千问 (DashScope)</option>
+      <option value="glm">智谱 GLM</option>
+      <option value="custom">自定义</option>
+    </select>
+    <label>API Key</label>
+    <input id="apiKey" type="password" placeholder="sk-... / 你的密钥" autocomplete="off">
+    <label>接口地址 (Base URL)</label>
+    <input id="apiBase" placeholder="https://...">
+    <label>模型名</label>
+    <input id="apiModel" placeholder="deepseek-chat">
+    <div class="merr" id="apiErr"></div>
+    <div class="mbtns">
+      <button class="pill" id="apiSave">保存</button>
+      <button class="pill ghost" id="apiClear">清除</button>
+      <button class="pill ghost" id="apiClose">关闭</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
